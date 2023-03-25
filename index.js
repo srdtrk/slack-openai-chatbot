@@ -16,12 +16,47 @@ const slackApp = new App({
   appToken: process.env.SLACK_APP_TOKEN, // add this
 });
 
+async function getThreadMessages(client, channel, ts) {
+  try {
+    const result = await client.conversations.replies({
+      token: process.env.SLACK_BOT_TOKEN,
+      channel: channel,
+      ts: ts,
+    });
+
+    return result.messages || [];
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+}
+
 slackApp.event("app_mention", async ({ event, client, logger }) => {
-  const prompt = `${event.text}`;
+  const threadMessages = await getThreadMessages(
+    client,
+    event.channel,
+    event.thread_ts
+  );
+  //console.log(threadMessages);
+  const userMessages = threadMessages.map((message) => {
+    if (message.bot_id != null) {
+      return {
+        role: "assistant",
+        content: message.text,
+      };
+    } else {
+      return {
+        role: "user",
+        content: `${message.user}: ` + message.text,
+      };
+    }
+  });
+
+  // console.log(userMessages);
 
   const completion = await openai.createChatCompletion({
     model: "gpt-3.5-turbo",
-    messages: [{ role: "user", content: prompt }],
+    messages: userMessages,
   });
 
   const reply = completion.data.choices[0].message.content;
