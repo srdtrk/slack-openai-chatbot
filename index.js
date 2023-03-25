@@ -55,7 +55,7 @@ slackApp.event("app_mention", async ({ event, client, logger }) => {
   // Add a system message at the start of the conversation
   userMessages.unshift({
     role: "system",
-    content: "Your custom system message here.",
+    content: process.env.GPT_SYSTEM_PROMPT,
   });
 
   // console.log(userMessages);
