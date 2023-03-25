@@ -32,25 +32,34 @@ async function getThreadMessages(client, channel, ts) {
 }
 
 slackApp.event("app_mention", async ({ event, client, logger }) => {
-  const threadMessages = await getThreadMessages(
-    client,
-    event.channel,
-    event.thread_ts
-  );
-  //console.log(threadMessages);
-  const userMessages = threadMessages.map((message) => {
-    if (message.bot_id != null) {
-      return {
-        role: "assistant",
-        content: message.text,
-      };
-    } else {
-      return {
+  let userMessages;
+  if (event.thread_ts != null) {
+    const threadMessages = await getThreadMessages(
+      client,
+      event.channel,
+      event.thread_ts
+    );
+    userMessages = threadMessages.map((message) => {
+      if (message.bot_id != null) {
+        return {
+          role: "assistant",
+          content: message.text,
+        };
+      } else {
+        return {
+          role: "user",
+          content: `${message.user}: ` + message.text,
+        };
+      }
+    });
+  } else {
+    userMessages = [
+      {
         role: "user",
-        content: `${message.user}: ` + message.text,
-      };
-    }
-  });
+        content: `${event.user}: ` + event.text,
+      },
+    ];
+  }
 
   // Add a system message at the start of the conversation
   userMessages.unshift({
