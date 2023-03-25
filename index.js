@@ -37,7 +37,7 @@ slackApp.event("app_mention", async ({ event, context }) => {
 
 (async () => {
   // Start your app
-  await app.start(process.env.PORT || 3000);
+  await slackApp.start(process.env.PORT || 3000);
 
   console.log("⚡️ Bolt app is running!");
 })();
