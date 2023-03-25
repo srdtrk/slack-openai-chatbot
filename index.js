@@ -10,8 +10,7 @@ const openai = new OpenAIApi(configuration);
 
 const slackApp = new App({
   token: process.env.SLACK_BOT_TOKEN,
-  appToken: process.env.SLACK_APP_TOKEN,
-  socketMode: true,
+  signingSecret: process.env.SLACK_SIGNING_SECRET,
 });
 
 const webClient = new WebClient(process.env.SLACK_BOT_TOKEN);
