@@ -16,9 +16,7 @@ const slackApp = new App({
   appToken: process.env.SLACK_APP_TOKEN, // add this
 });
 
-const webClient = new WebClient(process.env.SLACK_BOT_TOKEN);
-
-slackApp.event("app_mention", async ({ event, context }) => {
+slackApp.event("app_mention", async ({ event, client, logger }) => {
   const prompt = `${event.text}`;
 
   const completion = await openai.createChatCompletion({
@@ -26,10 +24,10 @@ slackApp.event("app_mention", async ({ event, context }) => {
     messages: [{ role: "user", content: prompt }],
   });
 
-  const reply = completion.data.choices[0].message;
+  const reply = completion.data.choices[0].message.content;
 
   try {
-    await webClient.chat.postMessage({
+    await client.chat.postMessage({
       channel: event.channel,
       text: reply,
     });
