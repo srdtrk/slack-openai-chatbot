@@ -52,6 +52,12 @@ slackApp.event("app_mention", async ({ event, client, logger }) => {
     }
   });
 
+  // Add a system message at the start of the conversation
+  userMessages.unshift({
+    role: "system",
+    content: "Your custom system message here.",
+  });
+
   // console.log(userMessages);
 
   const completion = await openai.createChatCompletion({
