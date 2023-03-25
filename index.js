@@ -30,6 +30,7 @@ slackApp.event("app_mention", async ({ event, client, logger }) => {
     await client.chat.postMessage({
       channel: event.channel,
       text: reply,
+      thread_ts: event.ts, // Add this line to reply in the same thread
     });
   } catch (error) {
     console.error(error);
