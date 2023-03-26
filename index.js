@@ -110,8 +110,7 @@ async function getImMessages(client, channel, ts, limit) {
 slackApp.event("message", async ({ event, client, logger }) => {
   if (event.channel_type != "im") {
     return;
-  }
-  if (event.bot_id == process.env.SLACK_BOT_ID) {
+  } else if (event.bot_id == process.env.SLACK_BOT_ID) {
     return;
   } else if (event.subtype == "message_deleted") {
     return;
@@ -144,12 +143,12 @@ slackApp.event("message", async ({ event, client, logger }) => {
     });
   }
   // console.log(userMessages);
+
   // get the reply from OpenAI
   const completion = await openai.createChatCompletion({
     model: "gpt-3.5-turbo",
     messages: userMessages,
   });
-
   const reply = completion.data.choices[0].message.content;
   // Send the reply
   try {
