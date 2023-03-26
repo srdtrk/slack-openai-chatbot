@@ -1,3 +1,5 @@
+org: srdtrk
+app: serverless-bolt-js
 service: serverless-bolt-js
 frameworkVersion: "3"
 provider:
