@@ -49,7 +49,7 @@ slackApp.event("app_mention", async ({ event, client, logger }) => {
       event.thread_ts
     );
     userMessages = threadMessages.map((message) => {
-      if (message.bot_id != null) {
+      if (message.bot_id == process.env.SLACK_BOT_ID) {
         return {
           role: "assistant",
           content: message.text,
