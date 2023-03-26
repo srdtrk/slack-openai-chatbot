@@ -48,19 +48,7 @@ slackApp.event("app_mention", async ({ event, client, logger }) => {
       event.channel,
       event.thread_ts
     );
-    userMessages = threadMessages.map((message) => {
-      if (message.bot_id == process.env.SLACK_BOT_ID) {
-        return {
-          role: "assistant",
-          content: message.text,
-        };
-      } else {
-        return {
-          role: "user",
-          content: `<@${message.user}>: ` + message.text,
-        };
-      }
-    });
+    userMessages = threadMessages.map(toOpenAIFormat);
   } else {
     userMessages = [
       {
@@ -96,6 +84,75 @@ slackApp.event("app_mention", async ({ event, client, logger }) => {
   }
 });
 
+// Fetch conversation history using the ID and a TS from the last example
+async function getImMessages(client, channel, ts, limit) {
+  try {
+    // Call the conversations.history method using the built-in WebClient
+    const result = await client.conversations.history({
+      // The token you used to initialize your app
+      token: process.env.SLACK_BOT_TOKEN,
+      channel,
+      // In a more realistic app, you may store ts data in a db
+      latest: ts,
+      // Limit results
+      inclusive: true,
+      limit,
+    });
+
+    // There should only be one result (stored in the zeroth index)
+    return result.messages || [];
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Listen for the message.im event to handle direct messages
+slackApp.event("message", async ({ event, client, logger }) => {
+  if (event.channel_type != "im") {
+    return;
+  }
+  if (event.bot_id == process.env.SLACK_BOT_ID) {
+    return;
+  } else if (event.subtype == "message_deleted") {
+    return;
+  }
+  // Get the conversation history (last 50 messages)
+  let userMessages;
+  if (event.ts != null) {
+    userMessages = await getImMessages(client, event.channel, event.ts, 50);
+    userMessages = userMessages.map(toOpenAIFormat).reverse();
+  } else {
+    userMessages = [
+      {
+        role: "user",
+        content: `<@${event.user}>: ` + event.text,
+      },
+    ];
+  }
+  // Add a system message at the start of the conversation
+  userMessages.unshift({
+    role: "system",
+    content: process.env.GPT_SYSTEM_PROMPT,
+  });
+  // console.log(userMessages);
+  // get the reply from OpenAI
+  const completion = await openai.createChatCompletion({
+    model: "gpt-3.5-turbo",
+    messages: userMessages,
+  });
+
+  const reply = completion.data.choices[0].message.content;
+  // Send the reply
+  try {
+    await client.chat.postMessage({
+      channel: event.channel,
+      text: reply,
+    });
+  } catch (error) {
+    console.error(error);
+  }
+});
+
 // Handle the Lambda function event
 module.exports.handler = async (event, context, callback) => {
   // This to prevent retries from Slack
@@ -105,4 +162,20 @@ module.exports.handler = async (event, context, callback) => {
 
   const handler = await awsLambdaReceiver.start();
   return handler(event, context, callback);
+};
+
+// Helper functions
+
+const toOpenAIFormat = (message) => {
+  if (message.bot_id == process.env.SLACK_BOT_ID) {
+    return {
+      role: "assistant",
+      content: message.text,
+    };
+  } else {
+    return {
+      role: "user",
+      content: `<@${message.user}>: ` + message.text,
+    };
+  }
 };
