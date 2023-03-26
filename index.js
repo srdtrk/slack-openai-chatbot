@@ -22,7 +22,7 @@ const slackApp = new App({
   // then processBeforeResponse: true is required. This option will defer sending back
   // the acknowledgement until after your handler has run to ensure your handler
   // isn't terminated early by responding to the HTTP request that triggered it.
-  processBeforeResponse: true,
+  // processBeforeResponse: true,
 });
 
 async function getThreadMessages(client, channel, ts) {
@@ -134,6 +134,15 @@ slackApp.event("message", async ({ event, client, logger }) => {
     role: "system",
     content: process.env.GPT_SYSTEM_PROMPT,
   });
+  // I insert system prompt again if the conversation is too long
+  if (userMessages.length > 20) {
+    // inserted at index 14
+    let index = userMessages.length - 14;
+    userMessages.splice(index, 0, {
+      role: "system",
+      content: process.env.GPT_SYSTEM_PROMPT,
+    });
+  }
   // console.log(userMessages);
   // get the reply from OpenAI
   const completion = await openai.createChatCompletion({
