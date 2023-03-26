@@ -8,10 +8,22 @@ const configuration = new Configuration({
 });
 const openai = new OpenAIApi(configuration);
 
+// Initialize your custom receiver
+const awsLambdaReceiver = new AwsLambdaReceiver({
+  signingSecret: process.env.SLACK_SIGNING_SECRET,
+});
+
 // Initializes your app with your app token and signing secret
 const slackApp = new App({
   token: process.env.SLACK_BOT_TOKEN,
-  signingSecret: process.env.SLACK_SIGNING_SECRET,
+  receiver: awsLambdaReceiver,
+
+  // When using the AwsLambdaReceiver, processBeforeResponse can be omitted.
+  // If you use other Receivers, such as ExpressReceiver for OAuth flow support
+  // then processBeforeResponse: true is required. This option will defer sending back
+  // the acknowledgement until after your handler has run to ensure your handler
+  // isn't terminated early by responding to the HTTP request that triggered it.
+  // processBeforeResponse: true
 });
 
 async function getThreadMessages(client, channel, ts) {
