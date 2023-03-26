@@ -22,7 +22,7 @@ const slackApp = new App({
   // then processBeforeResponse: true is required. This option will defer sending back
   // the acknowledgement until after your handler has run to ensure your handler
   // isn't terminated early by responding to the HTTP request that triggered it.
-  // processBeforeResponse: true
+  processBeforeResponse: true,
 });
 
 async function getThreadMessages(client, channel, ts) {
@@ -98,6 +98,11 @@ slackApp.event("app_mention", async ({ event, client, logger }) => {
 
 // Handle the Lambda function event
 module.exports.handler = async (event, context, callback) => {
+  // This to prevent retries from Slack
+  if (event.headers["X-Slack-Retry-Num"]) {
+    return { statusCode: 200, body: "ok" };
+  }
+
   const handler = await awsLambdaReceiver.start();
   return handler(event, context, callback);
 };
