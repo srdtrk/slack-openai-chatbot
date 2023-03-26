@@ -1,6 +1,5 @@
 require("dotenv").config();
 const { App } = require("@slack/bolt");
-const { WebClient } = require("@slack/web-api");
 const { Configuration, OpenAIApi } = require("openai");
 
 const configuration = new Configuration({
