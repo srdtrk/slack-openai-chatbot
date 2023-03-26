@@ -1,5 +1,5 @@
 require("dotenv").config();
-const { App } = require("@slack/bolt");
+const { App, AwsLambdaReceiver } = require("@slack/bolt");
 const { WebClient } = require("@slack/web-api");
 const { Configuration, OpenAIApi } = require("openai");
 
@@ -8,12 +8,10 @@ const configuration = new Configuration({
 });
 const openai = new OpenAIApi(configuration);
 
-// Initializes your app in socket mode with your app token and signing secret
+// Initializes your app with your app token and signing secret
 const slackApp = new App({
   token: process.env.SLACK_BOT_TOKEN,
   signingSecret: process.env.SLACK_SIGNING_SECRET,
-  socketMode: true, // add this
-  appToken: process.env.SLACK_APP_TOKEN, // add this
 });
 
 async function getThreadMessages(client, channel, ts) {
