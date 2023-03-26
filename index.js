@@ -57,7 +57,7 @@ slackApp.event("app_mention", async ({ event, client, logger }) => {
       } else {
         return {
           role: "user",
-          content: `${message.user}: ` + message.text,
+          content: `<@${message.user}>: ` + message.text,
         };
       }
     });
@@ -65,7 +65,7 @@ slackApp.event("app_mention", async ({ event, client, logger }) => {
     userMessages = [
       {
         role: "user",
-        content: `${event.user}: ` + event.text,
+        content: `<@${event.user}>: ` + event.text,
       },
     ];
   }
