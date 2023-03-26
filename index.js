@@ -97,9 +97,8 @@ slackApp.event("app_mention", async ({ event, client, logger }) => {
   }
 });
 
-(async () => {
-  // Start your app
-  await slackApp.start(process.env.PORT || 3000);
-
-  console.log("⚡️ Bolt app is running!");
-})();
+// Handle the Lambda function event
+module.exports.handler = async (event, context, callback) => {
+  const handler = await awsLambdaReceiver.start();
+  return handler(event, context, callback);
+};
