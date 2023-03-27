@@ -84,28 +84,6 @@ slackApp.event("app_mention", async ({ event, client, logger }) => {
   }
 });
 
-// Fetch conversation history using the ID and a TS from the last example
-async function getImMessages(client, channel, ts, limit) {
-  try {
-    // Call the conversations.history method using the built-in WebClient
-    const result = await client.conversations.history({
-      // The token you used to initialize your app
-      token: process.env.SLACK_BOT_TOKEN,
-      channel,
-      // In a more realistic app, you may store ts data in a db
-      latest: ts,
-      // Limit results
-      inclusive: true,
-      limit,
-    });
-
-    // There should only be one result (stored in the zeroth index)
-    return result.messages || [];
-  } catch (error) {
-    console.error(error);
-  }
-}
-
 // Listen for the message.im event to handle direct messages
 slackApp.event("message", async ({ event, client, logger }) => {
   if (event.channel_type != "im") {
@@ -117,9 +95,13 @@ slackApp.event("message", async ({ event, client, logger }) => {
   }
   // Get the conversation history (last 50 messages)
   let userMessages;
-  if (event.ts != null) {
-    userMessages = await getImMessages(client, event.channel, event.ts, 50);
-    userMessages = userMessages.map(toOpenAIFormat).reverse();
+  if (event.thread_ts != null) {
+    const threadMessages = await getThreadMessages(
+      client,
+      event.channel,
+      event.thread_ts
+    );
+    userMessages = threadMessages.map(toOpenAIFormat);
   } else {
     userMessages = [
       {
@@ -133,15 +115,16 @@ slackApp.event("message", async ({ event, client, logger }) => {
     role: "system",
     content: process.env.GPT_SYSTEM_PROMPT,
   });
-  // I insert system prompt again if the conversation is too long
-  if (userMessages.length > 20) {
-    // inserted at index 14
-    let index = userMessages.length - 14;
-    userMessages.splice(index, 0, {
-      role: "system",
-      content: process.env.GPT_SYSTEM_PROMPT,
-    });
-  }
+  // // I insert system prompt again if the conversation is too long
+  // if (userMessages.length > 20) {
+  //   // inserted at index 14
+  //   let index = userMessages.length - 14;
+  //   userMessages.splice(index, 0, {
+  //     role: "system",
+  //     content: process.env.GPT_SYSTEM_PROMPT,
+  //   });
+  // }
+
   // console.log(userMessages);
 
   // get the reply from OpenAI
@@ -155,6 +138,7 @@ slackApp.event("message", async ({ event, client, logger }) => {
     await client.chat.postMessage({
       channel: event.channel,
       text: reply,
+      thread_ts: event.ts, // Add this line to reply in the same thread
     });
   } catch (error) {
     console.error(error);
