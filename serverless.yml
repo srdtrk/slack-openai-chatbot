@@ -5,7 +5,7 @@ frameworkVersion: "3"
 provider:
   name: aws
   runtime: nodejs14.x
-  timeout: 60
+  timeout: 30
   environment:
     SLACK_SIGNING_SECRET: ${env:SLACK_SIGNING_SECRET}
     SLACK_BOT_TOKEN: ${env:SLACK_BOT_TOKEN}
