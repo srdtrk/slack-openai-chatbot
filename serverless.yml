@@ -1,10 +1,11 @@
 org: srdtrk
-app: serverless-bolt-js
-service: serverless-bolt-js
+app: openai-slack-bot-service
+service: openai-slack-bot-service
 frameworkVersion: "3"
 provider:
   name: aws
   runtime: nodejs14.x
+  region: ca-central-1
   timeout: 30
   environment:
     SLACK_SIGNING_SECRET: ${env:SLACK_SIGNING_SECRET}
