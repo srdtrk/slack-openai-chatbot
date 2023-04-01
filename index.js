@@ -1,4 +1,3 @@
-require("dotenv").config();
 const { App, AwsLambdaReceiver } = require("@slack/bolt");
 const { Configuration, OpenAIApi } = require("openai");
 
