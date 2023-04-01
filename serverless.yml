@@ -6,6 +6,13 @@ provider:
   name: aws
   runtime: nodejs14.x
   timeout: 30
+  environment:
+    SLACK_SIGNING_SECRET: ${env:SLACK_SIGNING_SECRET}
+    SLACK_BOT_TOKEN: ${env:SLACK_BOT_TOKEN}
+    SLACK_APP_TOKEN: ${env:SLACK_APP_TOKEN}
+    SLACK_BOT_ID: ${env:SLACK_BOT_ID}
+    OPENAI_API_KEY: ${env:OPENAI_API_KEY}
+    GPT_SYSTEM_PROMPT: ${env:GPT_SYSTEM_PROMPT}
 functions:
   slack:
     handler: index.handler
